@@ -1,36 +1,37 @@
-CC = x86_64-elf-gcc
-LD = x86_64-elf-ld
-CFLAGS = -ffreestanding -m64 -Wall -Wextra -Ikernel/include
-LDFLAGS = -T linker.ld
+CC = gcc
+LD = ld
+CFLAGS = -m32 -ffreestanding -nostdlib -Wall -Wextra -O0 -fno-builtin -fno-stack-protector
+LDFLAGS = -m elf_i386 -T linker.ld -nostdlib
+ISO_DIR = isodir
+KERNEL = kernel.bin
+ISO = my_kernel.iso
+QEMU = qemu-system-x86_64
 
-BUILD_DIR = build
-ISO_DIR = $(BUILD_DIR)/iso
-EFI_DIR = $(ISO_DIR)/boot/grub
-KERNEL_ELF = $(BUILD_DIR)/kernel.elf
-ISO_FILE = $(BUILD_DIR)/kernel.iso
+all: $(ISO)
 
-KERNEL_C_SRC = $(wildcard kernel/**/*.c)
-KERNEL_OBJ = $(patsubst kernel/%.c,$(BUILD_DIR)/%.o,$(KERNEL_C_SRC))
-
-$(BUILD_DIR)/%.o: kernel/%.c
-	@mkdir -p $(dir $@)
+kernel.o: kernel.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-all: $(KERNEL_ELF) iso
+#link
+$(KERNEL): kernel.o
+	$(LD) $(LDFLAGS) $^ -o $@
 
-$(KERNEL_ELF): $(KERNEL_OBJ)
-	$(LD) $(LDFLAGS) -o $@ $^
+# iso ready
+setup_iso: $(KERNEL)
+	mkdir -p $(ISO_DIR)/boot/grub
+	cp $(KERNEL) $(ISO_DIR)/boot/
+	echo 'menuentry "SINUX Project" { multiboot /boot/kernel.bin; boot; }' > $(ISO_DIR)/boot/grub/grub.cfg
 
-iso: $(KERNEL_ELF)
-	@mkdir -p $(EFI_DIR)
-	cp $(KERNEL_ELF) $(ISO_DIR)/boot/kernel.elf
-	cp boot/grub/grub.cfg $(EFI_DIR)/
-	grub-mkrescue -o $(ISO_FILE) $(ISO_DIR)
+# build iso
+$(ISO): setup_iso
+	grub-mkrescue -o $@ $(ISO_DIR)
 
-run:
-	qemu-system-x86_64 -cdrom build/kernel.iso
+# run
+run: $(ISO)
+	qemu-system-i386 -cdrom $(ISO)
+
 
 clean:
-	find $(BUILD_DIR) -type f -delete
+	rm -rf *.o $(KERNEL) $(ISO) $(ISO_DIR)
 
-.PHONY: all clean iso
+.PHONY: all run clean
