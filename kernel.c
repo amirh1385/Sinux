@@ -154,7 +154,10 @@ void system(){
 
 }
 
+multiboot_info_t* mbi_global;
+
 void kernel_main(multiboot_info_t* mbi) {
+    mbi_global = mbi;
     disable_cursor();
     bool on = true;
     int numcom = 0;
