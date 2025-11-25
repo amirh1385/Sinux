@@ -10,10 +10,26 @@
 #define PORT_STATUS 0x64
 __attribute__((section(".multiboot")))
 const unsigned int multiboot_header[] = {
-    MULTIBOOT_HEADER_MAGIC,
+    MULTIBOOT_HEADER_MAGIC, 
     MULTIBOOT_HEADER_FLAGS,
     CHECKSUM,
 };
+
+
+typedef struct {
+    uint32_t flags;
+    uint32_t mem_lower;
+    uint32_t mem_upper;
+    uint32_t boot_device;
+    uint32_t cmdline;
+    uint32_t mods_count;
+    uint32_t mods_addr;
+    uint32_t syms[4];
+    uint32_t mmap_length;
+    uint32_t mmap_addr;
+} multiboot_info_t;
+
+
 unsigned int stack[4096];
 const char scancode_to_ascii[] = {
     0, 27, '1', '2', '3', '4', '5', '6',
@@ -138,7 +154,7 @@ void system(){
 
 }
 
-void kernel_main() {
+void kernel_main(multiboot_info_t* mbi) {
     disable_cursor();
     bool on = true;
     int numcom = 0;
@@ -179,6 +195,7 @@ void kernel_main() {
 __attribute__((naked)) void _start() {
     asm volatile (
         "mov $stack + 4096, %esp\n"
+        "push %ebx\n"
         "call kernel_main\n"
         "cli\n"
         "hlt\n"
