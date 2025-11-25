@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include "ramfs/ramfs.c"
 #define MULTIBOOT_HEADER_MAGIC 0x1BADB002
 #define MULTIBOOT_HEADER_FLAGS 0x00000003
 #define CHECKSUM -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
@@ -14,21 +15,6 @@ const unsigned int multiboot_header[] = {
     MULTIBOOT_HEADER_FLAGS,
     CHECKSUM,
 };
-
-
-typedef struct {
-    uint32_t flags;
-    uint32_t mem_lower;
-    uint32_t mem_upper;
-    uint32_t boot_device;
-    uint32_t cmdline;
-    uint32_t mods_count;
-    uint32_t mods_addr;
-    uint32_t syms[4];
-    uint32_t mmap_length;
-    uint32_t mmap_addr;
-} multiboot_info_t;
-
 
 unsigned int stack[4096];
 const char scancode_to_ascii[] = {
@@ -159,6 +145,7 @@ multiboot_info_t* mbi_global;
 void kernel_main(multiboot_info_t* mbi) {
     mbi_global = mbi;
     disable_cursor();
+    init_ramfs(mbi);
     bool on = true;
     int numcom = 0;
     char user[15];

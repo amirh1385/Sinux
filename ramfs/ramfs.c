@@ -22,6 +22,10 @@ typedef struct {
 
 multiboot_module_t* modules;
 
+extern void vout(const char* str, int row, char color);
+
 void init_ramfs(multiboot_info_t* mbi){
     modules = (multiboot_module_t*)mbi->mods_addr;
+
+    vout("RamFS Module Loaded at: " , 12 , 0x0f);
 }
