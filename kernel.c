@@ -144,8 +144,23 @@ void system(){
     vout("==========================================="    , 11 , 0x0f);
 }
 
+extern int numcom;
+void help() {
+    vout("Available Commands:" , numcom , 0x0f);
+    vout("===================================" , numcom+1 , 0x0f);
+    vout("shutdown   - Power off the system" , numcom+2 , 0x0f);
+    vout("reboot     - Reboot the system" , numcom+3 , 0x0f);
+    vout("clear      - Clear the screen" , numcom+4 , 0x0f);
+    vout("system     - Display system information" , numcom+5 , 0x0f);
+    vout("ls         - List files in the RAMFS" , numcom+6 , 0x0f);
+    vout("help       - Show this help message" , numcom+7 , 0x0f);
+    vout("===================================" , numcom+8 , 0x0f);
+    numcom += 9;
+}
+
 multiboot_info_t* mbi_global;
 
+int numcom = 0;
 void kernel_main(multiboot_info_t* mbi) {
     mbi_global = mbi;
     disable_cursor();
@@ -155,7 +170,6 @@ void kernel_main(multiboot_info_t* mbi) {
     clear_screen(0x0f);
 
     bool on = true;
-    int numcom = 0;
     char user[15];
     vout("================================> [  " , 0 , 0x0f);
     vout("SINUX" , 0 , 0x0a);
@@ -198,6 +212,36 @@ void kernel_main(multiboot_info_t* mbi) {
                 file_index++;
                 numcom++;
             }
+            numcom++;
+        }else if(strcmp(command , "help") == 0){
+            help();
+        }else if(strcmp(command , "modules") == 0){
+            vout("Modules Count: " , numcom , 0x0f);
+            char modcount[10];
+            itoa(mbi->mods_count , modcount);
+            vout(modcount , numcom , 0x0f);
+            numcom++;
+            for(uint32_t i = 0; i < mbi->mods_count; i++){
+                multiboot_module_t* mod = (multiboot_module_t*)(uintptr_t)(mbi->mods_addr + i * sizeof(multiboot_module_t));
+                vout("Module " , numcom , 0x0f);
+                char modnum[10];
+                itoa(i , modnum);
+                vout(modnum , numcom , 0x0f);
+                vout(" Start: " , numcom , 0x0f);
+                char modstart[20];
+                itoa(mod->mod_start , modstart);
+                vout(modstart , numcom , 0x0f);
+                vout(" End: " , numcom , 0x0f);
+                char modend[20];
+                itoa(mod->mod_end , modend);
+                vout(modend , numcom , 0x0f);
+                numcom++;
+            }
+            numcom++;
+        }
+        else{
+            vout("Unknown command: " , numcom , 0x0c);
+            vout(command , numcom , 0x0f);
             numcom++;
         }
     }

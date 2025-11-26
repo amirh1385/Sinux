@@ -29,7 +29,7 @@ setup_iso: $(KERNEL)
 	cp $(KERNEL) $(ISO_DIR)/boot/
 	./ramfs_creator
 	cp kernel/memory_manager/memory_manager.o $(ISO_DIR)/boot/  # کپی ماژول به پوشه ISO
-	echo 'menuentry "SINUX Project" { multiboot /boot/kernel.bin; module /boot/memory_manager.o; boot; }' > $(ISO_DIR)/boot/grub/grub.cfg
+	echo 'menuentry "SINUX Project" { multiboot /boot/kernel.bin; module /boot/ramfs; module /boot/memory_manager.o; boot; }' > $(ISO_DIR)/boot/grub/grub.cfg
 
 # ساخت ISO
 $(ISO): setup_iso
