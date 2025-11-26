@@ -41,6 +41,8 @@ uint32_t kernel_page_start;  /* Starting page number for kernel */
 page_directory_t page_directories[MAX_PAGE_DIRECTORIES];
 uint32_t pd_count = 0;  /* Number of active page directories */
 
+
+extern void create_kernel_page_directory();
 void memory_manager_init(multiboot_info_t* mbi){
     memory_map = (multiboot_memory_map_t*)(uintptr_t)(mbi->mmap_addr);
     memory_map_entries = mbi->mmap_length;
@@ -101,6 +103,8 @@ void memory_manager_init(multiboot_info_t* mbi){
     for(uint32_t i = 0; i < KERNEL_PAGES; i++){
         page_map[kernel_page_start + i] = PAGE_USED;
     }
+
+    create_kernel_page_directory();
 }
 
 /**
@@ -296,4 +300,127 @@ uint32_t allocate_page(void){
     
     /* Return physical address of the allocated page */
     return page_num * PAGE_SIZE;
+}
+
+uint32_t create_new_page_directory() {
+    // تخصیص یک صفحه برای آدرس جدید صفحه‌دستگاه
+    uint32_t pd_address = allocate_page_kernel(); // تخصیص حافظه برای page directory
+    if (pd_address == 0) {
+        return 0;  // در صورتی که تخصیص با شکست مواجه شد
+    }
+
+    // ساختار جدید page_directory_t ایجاد می‌کنیم و آدرس تخصیص داده شده را در آن می‌ریزیم
+    page_directory_t *pd = create_page_directory(pd_count, pd_address); 
+    if (pd == NULL) {
+        return 0;  // در صورتی که نتوانستیم page directory را بسازیم
+    }
+
+    // اضافه کردن این page directory به آرایه page_directories
+    page_directories[pd_count - 1] = *pd; 
+
+    // برگشت آیدی page directory ساخته‌شده
+    return pd->id;
+}
+
+/**
+ * reserve_page_in_directory - رزرو یک صفحه در یک page directory خاص.
+ * اگر در جدول صفحات فعلی جایی نبود، یک جدول جدید ایجاد می‌کند و صفحه را در آن ذخیره می‌کند.
+ * @pd: اشاره‌گر به page directory که باید صفحه جدید در آن رزرو شود.
+ *
+ * Returns: شماره صفحه رزرو شده، یا 0xFFFFFFFF در صورتی که تخصیص با شکست مواجه شد.
+ */
+uint32_t reserve_page_in_directory(page_directory_t *pd) {
+    if (pd == NULL) {
+        return 0xFFFFFFFF;  // اگر اشاره‌گر به page directory نامعتبر است
+    }
+
+    uint32_t pt_index = 0, entry_index = 0;
+
+    // ابتدا بررسی می‌کنیم که آیا در جدول صفحات فعلی جای خالی داریم
+    if (!get_next_page_table_position(pd, &pt_index, &entry_index)) {
+        // اگر جای خالی پیدا نشد، یک جدول جدید ایجاد می‌کنیم
+        uint32_t new_pt_address = allocate_page_kernel();  // تخصیص یک صفحه جدید برای جدول صفحات
+        if (new_pt_address == 0) {
+            return 0xFFFFFFFF;  // اگر تخصیص صفحه جدید با شکست مواجه شد
+        }
+
+        // اگر جدول جدید ساخته شد، وضعیت جدول قبلی را به‌روز می‌کنیم
+        update_page_directory_state(pd, new_pt_address, pt_index + 1, 0);
+        pt_index++;
+    }
+
+    // در نهایت، باید یک صفحه را در جدول صفحات تخصیص دهیم
+    uint32_t page_num = allocate_free_page();  // پیدا کردن یک صفحه آزاد برای رزرو
+    if (page_num == 0xFFFFFFFF) {
+        return 0xFFFFFFFF;  // در صورتی که هیچ صفحه آزاد پیدا نشد
+    }
+
+    // ذخیره‌سازی صفحه در جدول صفحات و به‌روز کردن شاخص‌ها
+    set_page_status(page_num, PAGE_USED);  // علامت‌گذاری صفحه به عنوان "استفاده شده"
+    
+    // به روز کردن اطلاعات صفحه و جدول در page directory
+    uint32_t pt_address = pd->last_pt_address + pt_index * PAGE_SIZE; // آدرس جدول صفحات جدید
+    update_page_directory_state(pd, pt_address, pt_index, entry_index);
+
+    // بازگشت آدرس فیزیکی صفحه رزرو شده
+    return page_num * PAGE_SIZE;
+}
+
+
+/**
+ * load_page_directory - بارگذاری Page Directory در CR3 و فعال‌سازی Paging
+ * 
+ * @pd_address: آدرس حافظه صفحه‌دستگاه (Page Directory)
+ */
+void load_page_directory(uint32_t *pd_address) {
+    // بارگذاری آدرس Page Directory در CR3 و فعال‌سازی Paging
+    __asm__ volatile(
+        "mov %%eax, %%cr3;"      // CR3 را با آدرس Page Directory بارگذاری کن
+        "mov %%cr0, %%eax;"      // خواندن CR0
+        "or $0x80000000, %%eax;" // بیت 31 CR0 را فعال کن (Paging را فعال کن)
+        "mov %%eax, %%cr0;"      // بارگذاری مجدد CR0
+        :
+        : "a"(pd_address)        // آدرس Page Directory از طریق eax ارسال می‌شود
+        : "memory"
+    );
+}
+
+/**
+ * create_first_page_directory - اولین Page Directory را بساز و حافظه را به آن مپ کن
+ */
+void create_kernel_page_directory() {
+    uint32_t pd_address = allocate_page_kernel();  // تخصیص صفحه برای Page Directory
+    if (pd_address == 0) {
+        return;  // تخصیص حافظه برای Page Directory موفقیت‌آمیز نبوده
+    }
+
+    page_directory_t *first_pd = create_page_directory(0, pd_address);  // ساخت Page Directory
+    if (first_pd == NULL) {
+        return;  // ایجاد Page Directory با شکست مواجه شد
+    }
+
+    // مپ کردن تمامی صفحات حافظه
+    for (uint32_t i = 0; i < total_pages; i++) {
+        uint32_t pt_index = 0, entry_index_in_pt = 0;
+        uint32_t pt_address = 0;
+
+        // پیدا کردن صفحه و جدول صفحه مناسب
+        if (!get_next_page_table_position(first_pd, &pt_index, &entry_index_in_pt)) {
+            pt_address = allocate_page_kernel();
+            if (pt_address == 0) {
+                return;  // تخصیص جدول صفحه جدید با شکست مواجه شد
+            }
+            update_page_directory_state(first_pd, pt_address, pt_index + 1, 0);
+        }
+
+        set_page_status(i, PAGE_USED);  // علامت‌گذاری صفحه به عنوان استفاده‌شده
+        uint32_t pt_entry = i * PAGE_SIZE;
+        *((uint32_t*)pt_address + entry_index_in_pt) = pt_entry | 0x3; // MARK AS PRESENT and RW
+    }
+
+    // بارگذاری Page Directory در CR3 و فعال‌سازی Paging
+    load_page_directory((uint32_t *)pd_address);  // بارگذاری CR3 با آدرس Page Directory و فعال‌سازی Paging
+
+    // ثبت Page Directory
+    page_directories[0] = *first_pd;
 }
