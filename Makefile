@@ -1,36 +1,46 @@
-CC = x86_64-elf-gcc
-LD = x86_64-elf-ld
-CFLAGS = -ffreestanding -m64 -Wall -Wextra -Ikernel/include
-LDFLAGS = -T linker.ld
+CC = gcc
+LD = ld
+CFLAGS = -m32 -ffreestanding -nostdlib -Wall -Wextra -O0 -fno-builtin -fno-stack-protector
+LDFLAGS = -m elf_i386 -T linker.ld -nostdlib
+ISO_DIR = isodir
+KERNEL = kernel.bin
+ISO = my_kernel.iso
+QEMU = qemu-system-x86_64
 
-BUILD_DIR = build
-ISO_DIR = $(BUILD_DIR)/iso
-EFI_DIR = $(ISO_DIR)/boot/grub
-KERNEL_ELF = $(BUILD_DIR)/kernel.elf
-ISO_FILE = $(BUILD_DIR)/kernel.iso
+# فایل‌های ماژول‌ها
+MEMORY_MANAGER = kernel/memory_manager/memory_manager.o
 
-KERNEL_C_SRC = $(wildcard kernel/**/*.c)
-KERNEL_OBJ = $(patsubst kernel/%.c,$(BUILD_DIR)/%.o,$(KERNEL_C_SRC))
-
-$(BUILD_DIR)/%.o: kernel/%.c
-	@mkdir -p $(dir $@)
+# کامپایل ماژول memory_manager
+kernel/memory_manager/memory_manager.o: kernel/memory_manager/memory_manager.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-all: $(KERNEL_ELF) iso
+# کرنل اصلی
+kernel.o: kernel.c
+	$(CC) $(CFLAGS) -c $< -o $@
+	g++ ramfs.cpp -o ramfs_creator
 
-$(KERNEL_ELF): $(KERNEL_OBJ)
-	$(LD) $(LDFLAGS) -o $@ $^
+# لینک کردن کرنل و ماژول‌ها
+$(KERNEL): kernel.o $(MEMORY_MANAGER)
+	$(LD) $(LDFLAGS) $^ -o $@
 
-iso: $(KERNEL_ELF)
-	@mkdir -p $(EFI_DIR)
-	cp $(KERNEL_ELF) $(ISO_DIR)/boot/kernel.elf
-	cp boot/grub/grub.cfg $(EFI_DIR)/
-	grub-mkrescue -o $(ISO_FILE) $(ISO_DIR)
+# تنظیم ISO
+setup_iso: $(KERNEL)
+	mkdir -p $(ISO_DIR)/boot/grub
+	cp $(KERNEL) $(ISO_DIR)/boot/
+	./ramfs_creator
+	cp kernel/memory_manager/memory_manager.o $(ISO_DIR)/boot/  # کپی ماژول به پوشه ISO
+	echo 'menuentry "SINUX Project" { multiboot /boot/kernel.bin; module /boot/ramfs; module /boot/memory_manager.o; boot; }' > $(ISO_DIR)/boot/grub/grub.cfg
 
-run:
-	qemu-system-x86_64 -cdrom build/kernel.iso
+# ساخت ISO
+$(ISO): setup_iso
+	grub-mkrescue -o $@ $(ISO_DIR)
 
+# اجرای پروژه
+run: $(ISO)
+	qemu-system-i386 -cdrom $(ISO)
+
+# پاکسازی فایل‌های موقت
 clean:
-	find $(BUILD_DIR) -type f -delete
+	rm -rf *.o $(KERNEL) $(ISO) $(ISO_DIR)
 
-.PHONY: all clean iso
+.PHONY: all run clean

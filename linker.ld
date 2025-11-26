@@ -1,33 +1,26 @@
-OUTPUT_FORMAT(elf64-x86-64)
-ENTRY(kernel_main)
+ENTRY(_start)
 
-SECTIONS
-{
+SECTIONS {
     . = 1M;
 
-    .multiboot :
-    {
+    .multiboot : {
         *(.multiboot)
     }
 
-    .text :
-    {
-        *(.text*)
+    .text : {
+        *(.text)
     }
 
-    .rodata :
-    {
-        *(.rodata*)
+    .data : {
+        *(.data)
     }
 
-    .data :
-    {
-        *(.data*)
+    .bss : {
+        *(.bss)
     }
 
-    .bss :
-    {
-        *(COMMON)
-        *(.bss*)
+    /DISCARD/ : {
+        *(.comment)
+        *(.note.gnu.property)
     }
 }

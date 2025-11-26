@@ -1,0 +1,47 @@
+#include <stdint.h>
+#include "../lib/string.h"
+#include "../lib/multiboot_info.h"
+
+typedef struct {
+    uint32_t mod_start;
+    uint32_t mod_end;
+    uint32_t string;
+    uint32_t reserved;
+} multiboot_module_t;
+
+struct FileEntry {
+    char name[32];    // نام فایل
+    uint32_t start;   // آدرس شروع فایل در خروجی
+    uint32_t end;     // آدرس پایان فایل
+    uint8_t used; // نشان‌دهنده استفاده یا عدم استفاده از ورودی
+};
+
+multiboot_module_t* modules;
+
+extern void vout(const char* str, int row, char color);
+
+struct FileEntry* ramfs_header;
+
+void print_module_name(const char* name, int row) {
+    volatile char* video = (char*) 0xB8000;
+    video += row * 80 * 2;
+    int col = 0;
+    
+    while (*name && col < 80) {
+        *video++ = *name++;
+        *video++ = 0x0F;
+        col++;
+    }
+}
+
+void init_ramfs(multiboot_info_t* mbi){
+    vout("Searching for RamFS module...", 10, 0x0E);
+    if (mbi->mods_count == 0) {
+        vout("No modules found!", 10, 0x0C);
+        return;
+    }
+
+    modules = (multiboot_module_t*)(uintptr_t)(mbi->mods_addr);
+    ramfs_header = (struct FileEntry*)(uintptr_t)(modules[0].mod_start);
+    vout("RamFS loaded.", 11, 0x0A);
+}
