@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "ramfs/ramfs.c"
+#include "kernel/memory_manager/memory_manager.h"
 #include "lib/string.h"
 #define MULTIBOOT_HEADER_MAGIC 0x1BADB002
 #define MULTIBOOT_HEADER_FLAGS 0x00000003
@@ -130,8 +131,12 @@ void system(){
     vout("==========================================="    , 6 , 0x0f);
     vout("OS : SINUX" , 7 , 0x0f);
     vout("Kernel : Sinux 0.01" , 8 , 0x0f);
-
-
+    vout("Memory Size : " , 9 , 0x0f);
+    char size[20];
+    itoa(memory_size / (1024 * 1024), size);
+    vout(size , 9 , 0x0f);
+    vout(" MB" , 9 , 0x0f);
+    vout("==========================================="    , 10 , 0x0f);
 }
 
 multiboot_info_t* mbi_global;
@@ -140,6 +145,7 @@ void kernel_main(multiboot_info_t* mbi) {
     mbi_global = mbi;
     disable_cursor();
     init_ramfs(mbi);
+    memory_manager_init(mbi);
 
     clear_screen(0x0f);
 

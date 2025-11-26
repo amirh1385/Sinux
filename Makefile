@@ -7,32 +7,39 @@ KERNEL = kernel.bin
 ISO = my_kernel.iso
 QEMU = qemu-system-x86_64
 
-all: $(ISO)
+# فایل‌های ماژول‌ها
+MEMORY_MANAGER = kernel/memory_manager/memory_manager.o
 
+# کامپایل ماژول memory_manager
+kernel/memory_manager/memory_manager.o: kernel/memory_manager/memory_manager.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# کرنل اصلی
 kernel.o: kernel.c
 	$(CC) $(CFLAGS) -c $< -o $@
 	g++ ramfs.cpp -o ramfs_creator
 
-#link
-$(KERNEL): kernel.o
+# لینک کردن کرنل و ماژول‌ها
+$(KERNEL): kernel.o $(MEMORY_MANAGER)
 	$(LD) $(LDFLAGS) $^ -o $@
 
-# iso ready
+# تنظیم ISO
 setup_iso: $(KERNEL)
 	mkdir -p $(ISO_DIR)/boot/grub
 	cp $(KERNEL) $(ISO_DIR)/boot/
 	./ramfs_creator
-	echo 'menuentry "SINUX Project" { multiboot /boot/kernel.bin; module /boot/ramfs; boot; }' > $(ISO_DIR)/boot/grub/grub.cfg
+	cp kernel/memory_manager/memory_manager.o $(ISO_DIR)/boot/  # کپی ماژول به پوشه ISO
+	echo 'menuentry "SINUX Project" { multiboot /boot/kernel.bin; module /boot/memory_manager.o; boot; }' > $(ISO_DIR)/boot/grub/grub.cfg
 
-# build iso
+# ساخت ISO
 $(ISO): setup_iso
 	grub-mkrescue -o $@ $(ISO_DIR)
 
-# run
+# اجرای پروژه
 run: $(ISO)
 	qemu-system-i386 -cdrom $(ISO)
 
-
+# پاکسازی فایل‌های موقت
 clean:
 	rm -rf *.o $(KERNEL) $(ISO) $(ISO_DIR)
 
