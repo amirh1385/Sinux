@@ -176,6 +176,14 @@ void kernel_main(multiboot_info_t* mbi) {
         }
         else if(strcmp(command , "system") == 0){
             system();
+        }else if(strcmp(command, "ls") == 0){
+            int file_index = 0;
+            while (file_index < 256 && ramfs_header[file_index].used) {
+                vout(ramfs_header[file_index].name, numcom, 0x0f);
+                file_index++;
+                numcom++;
+            }
+            numcom++;
         }
     }
 }
