@@ -56,7 +56,12 @@ void clear_screen(char color) {
         row_offsets[i] = 0;
     }
 }
+extern void shift_screen_up();
 void vout(const char* str, int row, char color) {
+    if(row >= HEIGHT){
+        shift_screen_up();
+        row = HEIGHT - 1;
+    }
     volatile char* video = (char*) VIDEO_MEM;
     int offset = row_offsets[row];
     video += row * WIDTH * 2 + offset;
@@ -118,6 +123,25 @@ void reboot(){
     while(1){
         asm volatile ("hlt");
     }
+}
+
+extern int numcom;
+void shift_screen_up(){
+    for (int row = 1; row < HEIGHT; row++) {
+        volatile char* src = (char*) VIDEO_MEM + row * WIDTH * 2;
+        volatile char* dest = (char*) VIDEO_MEM + (row - 1) * WIDTH * 2;
+        for (int col = 0; col < WIDTH * 2; col++) {
+            *dest++ = *src++;
+        }
+        row_offsets[row - 1] = row_offsets[row];
+    }
+    volatile char* last_row = (char*) VIDEO_MEM + (HEIGHT - 1) * WIDTH * 2;
+    for (int col = 0; col < WIDTH * 2; col++) {
+        *last_row++ = ' ';
+        *last_row++ = 0x0F;
+    }
+    row_offsets[HEIGHT - 1] = 0;
+    numcom--;
 }
 
 void system(){
