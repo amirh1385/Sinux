@@ -26,9 +26,10 @@ struct RamFS_Entry {
     uint32_t type;       // 1 = فایل، 2 = پوشه
     uint32_t start;      // فقط برای فایل: offset شروع داده در فایل
     uint32_t end;        // فقط برای فایل: offset پایان داده
-    uint32_t child_count; // فقط برای فولدر: تعداد فرزندان
-    uint32_t child_index; // فقط برای فولدر: index اولین فرزند در آرایه header
+    uint32_t next_index; // index فایل/فولدر بعدی (0xFFFFFFFF = آخرین)
+    uint32_t child_index; // فقط برای فولدر: index اولین فرزند
     uint8_t used;
+    uint8_t padding[3];  // برای alignment
 };
 
 multiboot_module_t* modules;
@@ -49,35 +50,14 @@ void print_module_name(const char* name, int row) {
     }
 }
 
-struct RamFS_Entry* ramfs_header;
-
 void init_ramfs(multiboot_info_t* mbi){
-    vout("Searching for RamFS module...", 1, 0x0E);
+    vout("Searching for RamFS module...", 10, 0x0E);
     if (mbi->mods_count == 0) {
         vout("No modules found!", 10, 0x0C);
-        while (1){asm volatile ("hlt");}
         return;
     }
 
-    modules = (multiboot_module_t*) (uintptr_t)(mbi->mods_addr);
-
+    modules = (multiboot_module_t*)(uintptr_t)(mbi->mods_addr);
     ramfs_header = (struct RamFS_Entry*)(uintptr_t)(modules[0].mod_start);
-    vout("RamFS module loaded successfully.", 2, 0x0A);
-
-    uint8_t i = 0;
-    uint32_t count = 0;
-    
-    // شمارش فایل‌ها
-    while(i < 64 && ramfs_header[i].used) {
-        count++;
-        i++;
-    }
-
-    if(count == 2) {
-        vout("RamFS is empty!", 12, 0x0C);
-    } else {
-        vout("RamFS contents found: ", 12, 0x0F);
-    }
-
-    while (1){}
+    vout("RamFS loaded.", 11, 0x0A);
 }
