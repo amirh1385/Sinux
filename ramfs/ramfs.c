@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "../lib/string.h"
 
 typedef struct {
     uint32_t flags;
@@ -27,6 +28,7 @@ struct RamFS_Entry {
     uint32_t end;        // فقط برای فایل: offset پایان داده
     uint32_t child_count; // فقط برای فولدر: تعداد فرزندان
     uint32_t child_index; // فقط برای فولدر: index اولین فرزند در آرایه header
+    uint8_t used;
 };
 
 multiboot_module_t* modules;
@@ -35,6 +37,29 @@ extern void vout(const char* str, int row, char color);
 
 struct RamFS_Entry* ramfs_header;
 
+void print_module_name(const char* name, int row) {
+    volatile char* video = (char*) 0xB8000;
+    video += row * 80 * 2;
+    int col = 0;
+    
+    while (*name && col < 80) {
+        *video++ = *name++;
+        *video++ = 0x0F;
+        col++;
+    }
+}
+
+struct RamFS_Entry* ramfs_header;
+
 void init_ramfs(multiboot_info_t* mbi){
-    modules = (multiboot_module_t*)mbi->mods_addr;
+    vout("Searching for RamFS module...", 1, 0x0E);
+    if (mbi->mods_count == 0) {
+        vout("No modules found!", 10, 0x0C);
+        return;
+    }
+
+    modules = (multiboot_module_t*) (uintptr_t)(mbi->mods_addr);
+
+    ramfs_header = (struct RamFS_Entry*)(uintptr_t)(modules[0].mod_start);
+    vout("RamFS module loaded successfully.", 2, 0x0A);
 }

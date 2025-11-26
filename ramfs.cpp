@@ -14,11 +14,12 @@ struct RamFS_Entry {
     uint32_t end;        // فقط برای فایل: offset پایان داده
     uint32_t child_count; // فقط برای فولدر: تعداد فرزندان
     uint32_t child_index; // فقط برای فولدر: index اولین فرزند در آرایه header
+    uint8_t used;
 };
 
 const size_t HEADER_SIZE = 4096; // اندازه header ثابت
 const char* INPUT_DIR = "files";
-const char* OUTPUT_FILE = "ramfs.bin";
+const char* OUTPUT_FILE = "isodir/boot/ramfs";
 
 std::vector<RamFS_Entry> entries;
 std::vector<std::vector<char>> file_data; // برای ذخیره محتوای فایل‌ها
@@ -34,6 +35,7 @@ uint32_t process_directory(const fs::path& dir_path) {
     strncpy(folder_entry.name, folder_name.c_str(), sizeof(folder_entry.name) - 1);
     folder_entry.type = 2;
     folder_entry.start = 0;
+    folder_entry.used = 1;
     folder_entry.end = 0;
     folder_entry.child_count = 0;
     folder_entry.child_index = entries.size() + 1; // اولین فرزند بعد از این entry
@@ -60,6 +62,7 @@ uint32_t process_directory(const fs::path& dir_path) {
 
             file_entry.start = current_offset;
             file_entry.end = current_offset + data.size();
+            file_entry.used = 1;
             current_offset += data.size();
 
             entries.push_back(file_entry);

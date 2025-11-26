@@ -11,6 +11,7 @@ all: $(ISO)
 
 kernel.o: kernel.c
 	$(CC) $(CFLAGS) -c $< -o $@
+	g++ ramfs.cpp -o ramfs_creator
 
 #link
 $(KERNEL): kernel.o
@@ -20,7 +21,8 @@ $(KERNEL): kernel.o
 setup_iso: $(KERNEL)
 	mkdir -p $(ISO_DIR)/boot/grub
 	cp $(KERNEL) $(ISO_DIR)/boot/
-	echo 'menuentry "SINUX Project" { multiboot /boot/kernel.bin; boot; }' > $(ISO_DIR)/boot/grub/grub.cfg
+	./ramfs_creator
+	echo 'menuentry "SINUX Project" { multiboot /boot/kernel.bin; module /boot/ramfs; boot; }' > $(ISO_DIR)/boot/grub/grub.cfg
 
 # build iso
 $(ISO): setup_iso

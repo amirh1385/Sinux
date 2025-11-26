@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "ramfs/ramfs.c"
+#include "lib/string.h"
 #define MULTIBOOT_HEADER_MAGIC 0x1BADB002
 #define MULTIBOOT_HEADER_FLAGS 0x00000003
 #define CHECKSUM -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
@@ -38,13 +39,6 @@ static inline void outb(uint16_t port, uint8_t val) {
 }
 static inline void outw(uint16_t port, uint16_t val) {
     asm volatile ("outw %0, %1" : : "a"(val), "Nd"(port));
-}
-int strcmp(const char* s1 , const char* s2){
-    while(*s1 && (*s1 == *s2)) {
-        s1++;
-        s2++;
-    }
-    return *(const unsigned char*)s1 - *(const unsigned char*)s2;
 }
 
 void disable_cursor(){
@@ -146,6 +140,9 @@ void kernel_main(multiboot_info_t* mbi) {
     mbi_global = mbi;
     disable_cursor();
     init_ramfs(mbi);
+
+    clear_screen(0x0f);
+
     bool on = true;
     int numcom = 0;
     char user[15];
