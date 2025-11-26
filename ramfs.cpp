@@ -108,5 +108,10 @@ int main() {
     fout.close();
 
     std::cout << "RamFS binary created: " << OUTPUT_FILE << "\n";
+    std::cout << "Total entries created: " << entries.size() << "\n";
+    for (size_t i = 0; i < entries.size(); i++) {
+        std::cout << "  [" << i << "] " << entries[i].name 
+                  << " (type: " << entries[i].type << ", used: " << (int)entries[i].used << ")\n";
+    }
     return 0;
 }

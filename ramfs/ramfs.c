@@ -63,4 +63,21 @@ void init_ramfs(multiboot_info_t* mbi){
 
     ramfs_header = (struct RamFS_Entry*)(uintptr_t)(modules[0].mod_start);
     vout("RamFS module loaded successfully.", 2, 0x0A);
+
+    uint8_t i = 0;
+    uint32_t count = 0;
+    
+    // شمارش فایل‌ها
+    while(i < 64 && ramfs_header[i].used) {
+        count++;
+        i++;
+    }
+
+    if(count == 2) {
+        vout("RamFS is empty!", 12, 0x0C);
+    } else {
+        vout("RamFS contents found: ", 12, 0x0F);
+    }
+
+    while (1){}
 }
