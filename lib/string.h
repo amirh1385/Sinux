@@ -30,4 +30,40 @@ size_t strlen(const char *str) {
     return len;
 }
 
+void itoa(int num, char* str) {
+    int i = 0;
+    bool isNegative = false;
+
+    // اگر عدد منفی باشه، باید علامت منفی هم ذخیره بشه
+    if (num < 0) {
+        isNegative = true;
+        num = -num;
+    }
+
+    // تبدیل عدد به رشته
+    do {
+        str[i++] = (num % 10) + '0'; // گرفتن باقی‌مانده و تبدیل به کاراکتر
+        num = num / 10;  // تقسیم عدد بر ۱۰
+    } while (num != 0);
+
+    // اضافه کردن علامت منفی در صورت نیاز
+    if (isNegative) {
+        str[i++] = '-';
+    }
+
+    str[i] = '\0';  // افزودن null terminator در انتهای رشته
+
+    // معکوس کردن رشته (چون اعداد از آخر به اول اضافه می‌شدن)
+    int start = 0;
+    int end = i - 1;
+    while (start < end) {
+        // جا به جایی کاراکترها
+        char temp = str[start];
+        str[start] = str[end];
+        str[end] = temp;
+        start++;
+        end--;
+    }
+}
+
 #endif // STRING_H

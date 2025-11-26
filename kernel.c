@@ -179,7 +179,11 @@ void kernel_main(multiboot_info_t* mbi) {
         }else if(strcmp(command, "ls") == 0){
             int file_index = 0;
             while (file_index < 256 && ramfs_header[file_index].used) {
+                char size[12];
+                itoa(ramfs_header[file_index].end - ramfs_header[file_index].start, size);
                 vout(ramfs_header[file_index].name, numcom, 0x0f);
+                vout("  Size: ", numcom, 0x0f);
+                vout(size, numcom, 0x0f);
                 file_index++;
                 numcom++;
             }
