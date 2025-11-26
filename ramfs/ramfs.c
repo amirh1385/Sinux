@@ -55,6 +55,7 @@ void init_ramfs(multiboot_info_t* mbi){
     vout("Searching for RamFS module...", 1, 0x0E);
     if (mbi->mods_count == 0) {
         vout("No modules found!", 10, 0x0C);
+        while (1){asm volatile ("hlt");}
         return;
     }
 
