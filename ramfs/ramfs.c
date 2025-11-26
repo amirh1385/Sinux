@@ -61,3 +61,96 @@ void init_ramfs(multiboot_info_t* mbi){
     ramfs_header = (struct RamFS_Entry*)(uintptr_t)(modules[0].mod_start);
     vout("RamFS loaded.", 11, 0x0A);
 }
+
+// دریافت دایرکتوری با آدرس (مسیر)
+// آدرس مثلاً: "/", "/folder", "/folder/subfolder"
+// بازگشت: ایندکس دایرکتوری یا -1 اگر پیدا نشد
+int32_t ramfs_find_directory(const char* path) {
+    // اگر "/" باشد، فولدر اول (روت) را برگردان
+    if (strcmp(path, "/") == 0) {
+        return 0;
+    }
+
+    // شروع از روت
+    uint32_t current_dir = 0;
+    const char* p = path;
+
+    // skip اولین "/"
+    if (*p == '/') {
+        p++;
+    }
+
+    // parse کردن هر بخش از مسیر
+    while (*p) {
+        // پیدا کردن آخر اسم پوشه (تا "/" یا "\0")
+        const char* dir_end = p;
+        while (*dir_end && *dir_end != '/') {
+            dir_end++;
+        }
+
+        // طول نام پوشه
+        uint32_t name_len = dir_end - p;
+        if (name_len == 0) {
+            p++;
+            continue;
+        }
+
+        // جستجو برای این پوشه در فرزندان current_dir
+        uint32_t child_idx = ramfs_header[current_dir].child_index;
+        int32_t found = -1;
+
+        while (child_idx != 0) {
+            // بررسی اگر نام مطابقت دارد
+            if (ramfs_header[child_idx].type == 2) {
+                // مقایسه نام
+                int match = 1;
+                for (uint32_t i = 0; i < name_len; i++) {
+                    if (ramfs_header[child_idx].name[i] != p[i]) {
+                        match = 0;
+                        break;
+                    }
+                }
+                if (match && ramfs_header[child_idx].name[name_len] == '\0') {
+                    found = child_idx;
+                    break;
+                }
+            }
+            child_idx = ramfs_header[child_idx].next_index;
+        }
+
+        if (found == -1) {
+            return -1; // پوشه پیدا نشد
+        }
+
+        current_dir = found;
+        p = dir_end;
+
+        // skip "/"
+        if (*p == '/') {
+            p++;
+        }
+    }
+
+    return current_dir;
+}
+
+// دریافت لیست فایل‌های یک دایرکتوری
+// dir_index: ایندکس دایرکتوری (از ramfs_find_directory)
+// بازگشت: تعداد فایل‌ها
+uint32_t ramfs_list_directory(uint32_t dir_index, struct RamFS_Entry** entries_out) {
+    if (dir_index >= 64 || ramfs_header[dir_index].type != 2) {
+        return 0; // ایندکس معتبر نیست یا فولدر نیست
+    }
+
+    uint32_t child_idx = ramfs_header[dir_index].child_index;
+    uint32_t count = 0;
+
+    // شمارش تعداد فایل‌ها
+    while (child_idx != 0 && count < 64) {
+        entries_out[count] = &ramfs_header[child_idx];
+        child_idx = ramfs_header[child_idx].next_index;
+        count++;
+    }
+
+    return count;
+}
