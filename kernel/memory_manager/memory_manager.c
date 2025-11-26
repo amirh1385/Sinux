@@ -37,10 +37,20 @@ uint32_t page_map_address;  /* Address where page allocation map starts */
 uint32_t total_pages;  /* Total number of pages in system */
 uint32_t kernel_page_start;  /* Starting page number for kernel */
 
+uint32_t total_free_pages = 0;
+
 /* Page directory management */
 page_directory_t page_directories[MAX_PAGE_DIRECTORIES];
 uint32_t pd_count = 0;  /* Number of active page directories */
 
+void count_free_pages() {
+    total_free_pages = 0;
+    for (uint32_t i = 0; i < total_pages; i++) {
+        if (page_map[i] == PAGE_FREE) {
+            total_free_pages++;
+        }
+    }
+}
 
 extern void create_kernel_page_directory();
 void memory_manager_init(multiboot_info_t* mbi){
@@ -105,6 +115,7 @@ void memory_manager_init(multiboot_info_t* mbi){
     }
 
     create_kernel_page_directory();
+    count_free_pages();
 }
 
 /**
@@ -278,6 +289,7 @@ uint32_t allocate_page_kernel(void){
     
     /* Mark page as used by kernel (0x2) */
     page_map[page_num] = PAGE_USED;
+    total_free_pages--;
     
     /* Return physical address of the allocated page */
     return page_num * PAGE_SIZE;
@@ -297,6 +309,7 @@ uint32_t allocate_page(void){
     
     /* Mark page as used (0x1) */
     page_map[page_num] = 0x1;
+    total_free_pages--;
     
     /* Return physical address of the allocated page */
     return page_num * PAGE_SIZE;

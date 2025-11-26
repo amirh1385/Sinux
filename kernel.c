@@ -136,7 +136,12 @@ void system(){
     itoa(memory_size / (1024 * 1024), size);
     vout(size , 9 , 0x0f);
     vout(" MB" , 9 , 0x0f);
-    vout("==========================================="    , 10 , 0x0f);
+    vout("Free Memory : " , 10 , 0x0f);
+    char free_size[20];
+    itoa(total_free_pages * 4096 / (1024 * 1024), free_size);
+    vout(free_size , 10 , 0x0f);
+    vout(" MB" , 10 , 0x0f);
+    vout("==========================================="    , 11 , 0x0f);
 }
 
 multiboot_info_t* mbi_global;

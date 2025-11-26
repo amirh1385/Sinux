@@ -31,6 +31,8 @@ extern uint32_t kernel_page_start;
 extern page_directory_t page_directories[MAX_PAGE_DIRECTORIES];
 extern uint32_t pd_count;
 
+extern uint32_t total_free_pages;
+
 void memory_manager_init(multiboot_info_t* mbi);
 uint32_t find_kernel_location(uint32_t size);
 uint8_t get_page_status(uint32_t page_num);
