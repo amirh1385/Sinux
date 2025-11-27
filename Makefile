@@ -70,6 +70,6 @@ run: $(ISO)
 # پاکسازی
 # --------------------------
 clean:
-	rm -rf *.o $(KERNEL) $(ISO) $(ISO_DIR) ramfs_creator
+	rm -rf *.o $(KERNEL) $(ISO) $(ISO_DIR) kernel/memory_manager/memory_manager.o kernel/IDT/IDT_asm.o kernel/IDT/IDT.o ramfs_creator
 
 .PHONY: all run clean setup_iso
