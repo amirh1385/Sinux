@@ -3,6 +3,7 @@
 #include "ramfs/ramfs.c"
 #include "kernel/memory_manager/memory_manager.h"
 #include "lib/string.h"
+#include "kernel/IDT/IDT.h"
 #define MULTIBOOT_HEADER_MAGIC 0x1BADB002
 #define MULTIBOOT_HEADER_FLAGS 0x00000003
 #define CHECKSUM -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
@@ -187,9 +188,13 @@ multiboot_info_t* mbi_global;
 int numcom = 0;
 void kernel_main(multiboot_info_t* mbi) {
     mbi_global = mbi;
+
     disable_cursor();
     init_ramfs(mbi);
     memory_manager_init(mbi);
+    init_IDT();
+
+    asm volatile("sti"); // enable interrupts
 
     clear_screen(0x0f);
 
