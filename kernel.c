@@ -6,6 +6,7 @@
 #include "kernel/memory_manager/memory_manager.h"
 #include "lib/inout.h"
 #include "kernel/IDT/IDT.h"
+#include "kernel/loader/elf_loader.c"
 #define MULTIBOOT_HEADER_MAGIC 0x1BADB002
 #define MULTIBOOT_HEADER_FLAGS 0x00000003
 #define CHECKSUM -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
@@ -92,6 +93,31 @@ void help() {
     print_string("===================================\n");
 }
 
+int process_command(char command[160], char parameters_buffer[5][100]){
+    uint8_t index = 0;
+    uint8_t parameter_number = 0;
+    uint8_t parameter_index = 0;
+
+    while(index < 160){
+        parameter_index = 0;
+        while (index < 160 && command[index] == ' '){
+            index++;
+        }
+
+        uint8_t is_p = 0;
+
+        while(index < 160 && command[index] != ' '){
+            parameters_buffer[parameter_number][parameter_index] = command[index];
+            index++;
+            parameter_index++;
+            is_p = 1;
+        }
+        parameter_number+=is_p;
+    }
+
+    return parameter_number;
+}
+
 multiboot_info_t* mbi_global;
 
 void kernel_main(multiboot_info_t* mbi) {
@@ -135,6 +161,9 @@ void kernel_main(multiboot_info_t* mbi) {
         default_color.foreground = VGA_FG_WHITE;
         vin(command);
 
+        char parameters[5][100];
+        uint8_t parameter_count = process_command(command, parameters);
+
         if(strcmp(command , "shutdown") == 0){
             shutdown();
         }
@@ -155,6 +184,10 @@ void kernel_main(multiboot_info_t* mbi) {
                 print_string(ramfs_header[file_index].name);
                 print_string("  Size: ");
                 print_string(size);
+                print_string(" Start: ");
+                char start[15];
+                itoa(ramfs_header[file_index].start, start);
+                print_string(start);
                 print_char('\n');
                 file_index++;
             }
@@ -184,6 +217,18 @@ void kernel_main(multiboot_info_t* mbi) {
             }
         }else if(strcmp(command, "syscal") == 0){
             SYSCALL(0, 0, 0);
+        }else if(strcmp(parameters[0], "load") == 0){
+            if(parameter_count >= 2){
+                struct FileEntry file_entry;
+                if(find_file(parameters[1], &file_entry)){
+                    load_elf(file_entry.start, file_entry.end);
+                }else{
+                    print_string("file not found");
+                }
+            }else{
+                print_string("load <filename>");
+            }
+            print_char('\n');
         }else{
             print_string("Unknown command: \n");
             print_string(command);

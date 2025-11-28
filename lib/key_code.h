@@ -57,4 +57,6 @@
 #define KEYCODE_NUMPAD_8  72
 #define KEYCODE_NUMPAD_9  73
 
+#define KEYCODE_DOT_MAIN  52
+
 #endif

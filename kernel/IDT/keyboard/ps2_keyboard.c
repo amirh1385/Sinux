@@ -89,6 +89,9 @@ KeyMapEntry key_codes[256] = {
 
     [0x0E] = {.type=0, .key_code=KEYCODE_BACKSPACE, .character='\b'},
     [0x0E + 0x80] = {.type=1, .key_code=KEYCODE_BACKSPACE, .character='\b'},
+
+    [0x34] = {.type=0, .key_code=KEYCODE_DOT_MAIN, .character='.'},
+    [0x34 + 0x80] = {.type=0, .key_code=KEYCODE_DOT_MAIN, .character='.'},
 };
 
 extern void on_key_pressed(KeyMapEntry key_code);

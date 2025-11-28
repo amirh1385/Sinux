@@ -32,6 +32,17 @@ void print_module_name(const char* name, int row) {
     }
 }
 
+uint8_t find_file(char *file_name, struct FileEntry *file_entry){
+    for(int i = 0; i < 256; i++){
+        if(strcmp(ramfs_header[i].name, file_name) == 0){
+            *file_entry = ramfs_header[i];
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 void init_ramfs(multiboot_info_t* mbi){
     print_string("Searching for RamFS module...\n");
     if (mbi->mods_count == 0) {
@@ -41,5 +52,13 @@ void init_ramfs(multiboot_info_t* mbi){
 
     modules = (multiboot_module_t*)(uintptr_t)(mbi->mods_addr);
     ramfs_header = (struct FileEntry*)(uintptr_t)(modules[0].mod_start);
+
+    for(int i = 0; i < 256; i++){
+        if(ramfs_header[i].used){
+            ramfs_header[i].start += modules[0].mod_start;
+            ramfs_header[i].end += modules[0].mod_end;
+        }
+    }
+
     print_string("RamFS loaded.\n");
 }
