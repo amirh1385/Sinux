@@ -83,14 +83,18 @@ void system(){
 void help() {
     default_color.foreground = VGA_FG_WHITE;
     print_string("Available Commands:\n");
-    print_string("===================================\n");
-    print_string("shutdown   - Power off the system\n");
-    print_string("reboot     - Reboot the system\n");
-    print_string("clear      - Clear the screen\n");
-    print_string("system     - Display system information\n");
-    print_string("ls         - List files in the RAMFS\n");
-    print_string("help       - Show this help message\n");
-    print_string("===================================\n");
+    print_string("============================================================\n");
+    print_string("  shutdown                - Power off the system\n");
+    print_string("  reboot                  - Reboot the system\n");
+    print_string("  clear                   - Clear the screen\n");
+    print_string("  system                  - Display system information\n");
+    print_string("  ls                      - List files in the RAMFS\n");
+    print_string("  help                    - Show this help message\n");
+    print_string("  elfinfo <elf file name> - Show elf file information\n");
+    print_string("  modules                 - Show modules list\n");
+    print_string("  load <elf file name>    - Load elf program info memory\n");
+    print_string("  syscal                  - Send test clear screen syscal\n");
+    print_string("============================================================\n");
 }
 
 int process_command(char command[160], char parameters_buffer[5][100]){
@@ -229,6 +233,53 @@ void kernel_main(multiboot_info_t* mbi) {
                 print_string("load <filename>");
             }
             print_char('\n');
+        }else if(strcmp(parameters[0], "elfinfo") == 0){
+            if(parameter_count >= 2){
+                struct FileEntry file;
+                if(find_file(parameters[1], &file)){
+                    if(file.end - file.start < 52){
+                        print_string("elf file not valid");
+                    }else{
+                        Elf32_header *elf_header = (Elf32_header*)file.start;
+
+                        print_string("File Name: ");
+                        print_string(file.name);
+                        print_char('\n');
+                        print_char('\n');
+                        print_string("Type: ");
+                        switch (elf_header->e_type)
+                        {
+                        case 0x0:
+                            print_string("Invalid\n");
+                            break;
+                        
+                        case 0x1:
+                            print_string("Relocatable File\n");
+                            break;
+
+                        case 0x2:
+                            print_string("Executable File\n");
+                            break;
+
+                        case 0x3:
+                            print_string("Shared object / dynamic library\n");
+                            break;
+
+                        case 0x4:
+                            print_string("Core dump");
+                            break;
+                        
+                        default:
+                            print_string("Unknown\n");
+                            break;
+                        }
+                    }
+                }else{
+                    print_string("file not found");
+                }
+            }else{
+                print_string("fileinfo <elf file name>");
+            }
         }else{
             print_string("Unknown command: \n");
             print_string(command);
