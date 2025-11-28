@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "../../lib/inout.h"
 
 typedef struct __attribute__((packed)) {
     uint8_t foreground : 4;  // رنگ پیش‌زمینه (0-15)
@@ -148,6 +149,7 @@ void vin(char* buffer) {
         else if(vin_input_char == '\b'){
             if(index > 0){
                 index--;
+                buffer[index] = ' ';
                 last_cursor_position();
                 print_char(' ');
                 last_cursor_position();

@@ -87,8 +87,8 @@ KeyMapEntry key_codes[256] = {
     [0x39] = {.type=0, .key_code=KEYCODE_SPACE, .character=' '},
     [0x39 + 0x80] = {.type=1, .key_code=KEYCODE_SPACE, .character=' '},
 
-    [0x66] = {.type=0, .key_code=KEYCODE_BACKSPACE, .character='\b'},
-    [0x66 + 0x80] = {.type=1, .key_code=KEYCODE_BACKSPACE, .character='\b'},
+    [0x0E] = {.type=0, .key_code=KEYCODE_BACKSPACE, .character='\b'},
+    [0x0E + 0x80] = {.type=1, .key_code=KEYCODE_BACKSPACE, .character='\b'},
 };
 
 extern void on_key_pressed(KeyMapEntry key_code);
