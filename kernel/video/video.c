@@ -2,14 +2,14 @@
 #include "../../lib/inout.h"
 
 typedef struct __attribute__((packed)) {
-    uint8_t foreground : 4;  // رنگ پیش‌زمینه (0-15)
-    uint8_t background : 3;  // رنگ پس‌زمینه (0-7)
-    uint8_t blink      : 1;  // 1=blink, 0=steady
+    uint8_t foreground : 4;  
+    uint8_t background : 3;  
+    uint8_t blink      : 1;  
 } VGAColor;
 
 typedef struct __attribute__((packed)) {
-    char character;  // کاراکتر ASCII
-    VGAColor color;  // struct بالا، ۱ بایت کل
+    char character;  
+    VGAColor color;  
 } VGAEntry;
 
 typedef struct {
@@ -23,7 +23,7 @@ typedef struct {
     char character;
 } KeyMapEntry;
 
-// Foreground colors (4 bits: 0-15)
+
 typedef enum {
     VGA_FG_BLACK        = 0x0,
     VGA_FG_BLUE         = 0x1,
@@ -43,7 +43,7 @@ typedef enum {
     VGA_FG_WHITE        = 0xF
 } VGA_ForegroundColor;
 
-// Background colors (3 bits: 0-7)
+
 typedef enum {
     VGA_BG_BLACK        = 0x0,
     VGA_BG_BLUE         = 0x1,

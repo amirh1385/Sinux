@@ -1,10 +1,10 @@
-// KEYCODE_CODE.h
-// keycode definitions
+
+
 
 #ifndef KEYCODE_CODE_H
 #define KEYCODE_CODE_H
 
-// Key Codes
+
 #define KEYCODE_A       30
 #define KEYCODE_B       48
 #define KEYCODE_C       46
@@ -45,7 +45,7 @@
 #define KEYCODE_SPACE   57
 #define KEYCODE_BACKSPACE 14
 
-// numpad keys
+
 #define KEYCODE_NUMPAD_0  82
 #define KEYCODE_NUMPAD_1  79
 #define KEYCODE_NUMPAD_2  80

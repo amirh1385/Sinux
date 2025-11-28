@@ -14,11 +14,11 @@ __attribute__((noinline)) void clear_screen();
     ret; \
 })
 
-// خواندن مقدار رجیستر
+
 #define READ_REG(reg, var) \
     asm volatile("mov %%" #reg ", %0" : "=r"(var) :: "memory")
 
-// نوشتن مقدار در رجیستر
+
 #define WRITE_REG(reg, val) \
     asm volatile("mov %0, %%" #reg :: "r"(val) : "memory")
 

@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-// ===== OUT instructions =====
+
 static inline void outb(uint16_t port, uint8_t val) {
     asm volatile ("outb %0, %1" : : "a"(val), "Nd"(port));
 }
@@ -16,7 +16,7 @@ static inline void outl(uint16_t port, uint32_t val) {
     asm volatile ("outl %0, %1" : : "a"(val), "Nd"(port));
 }
 
-// ===== IN instructions =====
+
 static inline uint8_t inb(uint16_t port) {
     uint8_t val;
     asm volatile ("inb %1, %0" : "=a"(val) : "Nd"(port));

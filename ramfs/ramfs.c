@@ -10,10 +10,10 @@ typedef struct {
 } multiboot_module_t;
 
 struct FileEntry {
-    char name[32];    // نام فایل
-    uint32_t start;   // آدرس شروع فایل در خروجی
-    uint32_t end;     // آدرس پایان فایل
-    uint8_t used; // نشان‌دهنده استفاده یا عدم استفاده از ورودی
+    char name[32];    
+    uint32_t start;   
+    uint32_t end;     
+    uint8_t used; 
 };
 
 multiboot_module_t* modules;

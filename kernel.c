@@ -102,7 +102,7 @@ void kernel_main(multiboot_info_t* mbi) {
     memory_manager_init(mbi);
     init_IDT();
 
-    asm volatile("sti"); // enable interrupts
+    asm volatile("sti"); 
 
     clear_screen(0x0f);
 

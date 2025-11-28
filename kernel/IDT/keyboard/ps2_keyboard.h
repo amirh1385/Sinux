@@ -1,5 +1,5 @@
-// PS2_KEYBOARD.h
-// Header file for PS/2 keyboard driver
+
+
 
 #ifndef PS2_KEYBOARD_H
 #define PS2_KEYBOARD_H
