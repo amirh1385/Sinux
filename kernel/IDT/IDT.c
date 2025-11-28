@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "../../lib/inout.h"
 #include "IDT.h"
+#include "keyboard/ps2_keyboard.c"
 
 struct IDT_entry IDT[256];
 

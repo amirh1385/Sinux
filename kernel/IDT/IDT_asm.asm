@@ -36,9 +36,6 @@ flush_cs:
 global isr_default_handler
 isr_default_handler:
     pushad
-    mov al, 'D'
-    mov dx, 0x3F8
-    out dx, al
     popad
     iretd
 
@@ -47,16 +44,14 @@ irq0_handler:
     pushad
     mov al, 0x20
     out 0x20, al
-    mov al, '0'
-    mov dx, 0x3F8
-    out dx, al
     popad
     iretd
 
+extern handle_keyboard
 global irq1_keyboard_handler
 irq1_keyboard_handler:
-    cli
     pushad
+    call handle_keyboard
     popad
     mov al, 0x20
     out 0x20, al

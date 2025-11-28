@@ -18,8 +18,6 @@ struct FileEntry {
 
 multiboot_module_t* modules;
 
-extern void vout(const char* str, int row, char color);
-
 struct FileEntry* ramfs_header;
 
 void print_module_name(const char* name, int row) {
@@ -35,13 +33,13 @@ void print_module_name(const char* name, int row) {
 }
 
 void init_ramfs(multiboot_info_t* mbi){
-    vout("Searching for RamFS module...", 10, 0x0E);
+    print_string("Searching for RamFS module...\n");
     if (mbi->mods_count == 0) {
-        vout("No modules found!", 10, 0x0C);
+        print_string("No modules found!\n");
         return;
     }
 
     modules = (multiboot_module_t*)(uintptr_t)(mbi->mods_addr);
     ramfs_header = (struct FileEntry*)(uintptr_t)(modules[0].mod_start);
-    vout("RamFS loaded.", 11, 0x0A);
+    print_string("RamFS loaded.\n");
 }
