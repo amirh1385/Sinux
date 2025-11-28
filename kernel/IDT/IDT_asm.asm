@@ -57,6 +57,14 @@ irq1_keyboard_handler:
     out 0x20, al
     iretd
 
+extern handle_syscal
+global syscal_handler
+syscal_handler:
+    pushad
+    call handle_syscal
+    popad
+    iretd
+
 global gpf
 gpf:
     cli

@@ -1,11 +1,11 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include "lib/string.c"
+#include "kernel/video/video.c"
 #include "ramfs/ramfs.c"
 #include "kernel/memory_manager/memory_manager.h"
-#include "lib/string.h"
 #include "lib/inout.h"
 #include "kernel/IDT/IDT.h"
-#include "kernel/video/video.c"
 #define MULTIBOOT_HEADER_MAGIC 0x1BADB002
 #define MULTIBOOT_HEADER_FLAGS 0x00000003
 #define CHECKSUM -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
@@ -17,6 +17,18 @@ const unsigned int multiboot_header[] = {
 };
 
 unsigned int stack[4096];
+
+
+#define SYSCALL(syscal_number, arg1, arg2) ({ \
+    long ret; \
+    asm volatile ( \
+        "int $0x80" \
+        : "=a"(ret) \
+        : "a"(syscal_number), "b"(arg1), "c"(arg2) \
+        : "memory"); \
+    ret; \
+})
+
 
 void disable_cursor(){
     outb(0x3d4 , 0x0a);
@@ -170,8 +182,10 @@ void kernel_main(multiboot_info_t* mbi) {
                 print_string(modend);
                 print_char('\n');
             }
+        }else if(strcmp(command, "syscal") == 0){
+            SYSCALL(0, 0, 0);
         }else{
-            print_string("Unknown command: ");
+            print_string("Unknown command: \n");
             print_string(command);
         }
     }

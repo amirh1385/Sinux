@@ -2,6 +2,7 @@
 #include "../../lib/inout.h"
 #include "IDT.h"
 #include "keyboard/ps2_keyboard.c"
+#include "syscal/syscal.c"
 
 struct IDT_entry IDT[256];
 
@@ -54,9 +55,9 @@ void pic_remap(int offset1, int offset2) {
 extern void isr_default_handler();
 extern void irq0_handler();
 extern void irq1_keyboard_handler();
+extern void syscal_handler();
 extern void gpf();
 extern void init_gdt();
-// extern void syscall_handler();
 void init_IDT() {
     init_gdt();
 
@@ -72,7 +73,7 @@ void init_IDT() {
     set_IDT_entry(32, (uint32_t)irq0_handler, 0x08, 0x8E);
     set_IDT_entry(0x21, (uint32_t)irq1_keyboard_handler, 0x08, 0x8E);
     set_IDT_entry(13, (uint32_t)gpf, 0x08, 0x8E);
-    // set_IDT_entry(0x80, (uint32)syscall_handler, 0x08, 0x8E);
+    set_IDT_entry(0x80, (uint32_t)syscal_handler, 0x08, 0x8E);
 
     asm volatile("lidt %0" : : "m"(idtp));
 }
