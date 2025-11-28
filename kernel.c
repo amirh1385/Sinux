@@ -9,11 +9,6 @@
 #define MULTIBOOT_HEADER_MAGIC 0x1BADB002
 #define MULTIBOOT_HEADER_FLAGS 0x00000003
 #define CHECKSUM -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
-#define VIDEO_MEM 0xB8000
-#define WIDTH 80
-#define HEIGHT 25
-#define PORT_KEYBOARD 0x60
-#define PORT_STATUS 0x64
 __attribute__((section(".multiboot")))
 const unsigned int multiboot_header[] = {
     MULTIBOOT_HEADER_MAGIC, 
