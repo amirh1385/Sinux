@@ -6,7 +6,6 @@
 #include "kernel/memory_manager/memory_manager.h"
 #include "lib/inout.h"
 #include "kernel/IDT/IDT.h"
-#include "kernel/loader/elf_loader.c"
 #define MULTIBOOT_HEADER_MAGIC 0x1BADB002
 #define MULTIBOOT_HEADER_FLAGS 0x00000003
 #define CHECKSUM -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
@@ -90,9 +89,7 @@ void help() {
     print_string("  system                  - Display system information\n");
     print_string("  ls                      - List files in the RAMFS\n");
     print_string("  help                    - Show this help message\n");
-    print_string("  elfinfo <elf file name> - Show elf file information\n");
     print_string("  modules                 - Show modules list\n");
-    print_string("  load <elf file name>    - Load elf program info memory\n");
     print_string("  syscal                  - Send test clear screen syscal\n");
     print_string("============================================================\n");
 }
@@ -221,65 +218,6 @@ void kernel_main(multiboot_info_t* mbi) {
             }
         }else if(strcmp(command, "syscal") == 0){
             SYSCALL(0, 0, 0);
-        }else if(strcmp(parameters[0], "load") == 0){
-            if(parameter_count >= 2){
-                struct FileEntry file_entry;
-                if(find_file(parameters[1], &file_entry)){
-                    load_elf(file_entry.start, file_entry.end);
-                }else{
-                    print_string("file not found");
-                }
-            }else{
-                print_string("load <filename>");
-            }
-            print_char('\n');
-        }else if(strcmp(parameters[0], "elfinfo") == 0){
-            if(parameter_count >= 2){
-                struct FileEntry file;
-                if(find_file(parameters[1], &file)){
-                    if(file.end - file.start < 52){
-                        print_string("elf file not valid");
-                    }else{
-                        Elf32_header *elf_header = (Elf32_header*)file.start;
-
-                        print_string("File Name: ");
-                        print_string(file.name);
-                        print_char('\n');
-                        print_char('\n');
-                        print_string("Type: ");
-                        switch (elf_header->e_type)
-                        {
-                        case 0x0:
-                            print_string("Invalid\n");
-                            break;
-                        
-                        case 0x1:
-                            print_string("Relocatable File\n");
-                            break;
-
-                        case 0x2:
-                            print_string("Executable File\n");
-                            break;
-
-                        case 0x3:
-                            print_string("Shared object / dynamic library\n");
-                            break;
-
-                        case 0x4:
-                            print_string("Core dump");
-                            break;
-                        
-                        default:
-                            print_string("Unknown\n");
-                            break;
-                        }
-                    }
-                }else{
-                    print_string("file not found");
-                }
-            }else{
-                print_string("fileinfo <elf file name>");
-            }
         }else{
             print_string("Unknown command: \n");
             print_string(command);

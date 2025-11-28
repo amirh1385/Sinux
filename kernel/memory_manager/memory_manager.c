@@ -437,3 +437,17 @@ void create_kernel_page_directory() {
     
     page_directories[0] = *first_pd;
 }
+
+void create_user_page_directory(){
+    uint32_t pd_address = allocate_page_kernel();  
+    if (pd_address == 0) {
+        return;  
+    }
+
+    page_directory_t *user_pd = create_page_directory(0, pd_address);  
+    if (user_pd == NULL) {
+        return;  
+    }
+
+    page_directories[1] = *user_pd;
+}
