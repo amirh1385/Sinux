@@ -64,7 +64,8 @@ $(ISO): setup_iso
 # اجرای QEMU
 # --------------------------
 run: $(ISO)
-	$(QEMU) -cdrom $(ISO) -full-screen
+	$(QEMU) -cdrom $(ISO)
+# 	$(QEMU) -cdrom $(ISO) -full-screen
 
 # --------------------------
 # پاکسازی

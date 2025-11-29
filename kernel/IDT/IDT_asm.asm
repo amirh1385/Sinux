@@ -65,6 +65,7 @@ syscal_handler:
     popad
     iretd
 
+extern red_screen_error
 global gpf
 gpf:
     cli
@@ -72,5 +73,7 @@ gpf:
     mov al, 'G'
     mov dx, 0x3F8
     out dx, al
+
+    call red_screen_error
     popad
     iretd

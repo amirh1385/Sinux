@@ -94,6 +94,42 @@ void help() {
     print_string("============================================================\n");
 }
 
+void red_screen_error(){
+    asm volatile("cli");
+    clear_screen();
+    default_color.background = VGA_BG_RED;
+    default_color.foreground = VGA_FG_WHITE;
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+    print_string("   #######                                                                      ");
+    print_string("   #    # #                                                                     ");
+    print_string("   #    #  #                                                                    ");
+    print_string("   #    #   #                                                                   ");
+    print_string("   #    #####                                                                   ");
+    print_string("   #        #                                                                   ");
+    print_string("   #        #                                                                   ");
+    print_string("   # #    # #                                                                   ");
+    print_string("   #  ####  #                                                                   ");
+    print_string("   ##########                                                                   ");
+    print_string("                                                                                ");
+    print_string("   CRITICAL ERROR: The kernel asked for help. I refused. Now we're here.        ");
+    print_string("   RED SCREEN: If you're reading this, congratulations. You found a new         ");
+    print_string("   bug species.                                                                 ");
+    print_string("                                                                                ");
+    print_string("   Last Instruction: Whatever it was, it didn't work.                           ");
+    print_string("   CPU State: Confused.                                                         ");
+    print_string("   Memory State: Screaming.                                                     ");
+    print_string("                                                                                ");
+    print_string("   Advice: Restart the system. Then fix your kernel, genius.                    ");
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+
+    while(1){
+        asm volatile("hlt");
+    }
+}
+
 int process_command(char command[160], char parameters_buffer[5][100]){
     uint8_t index = 0;
     uint8_t parameter_number = 0;
@@ -218,6 +254,12 @@ void kernel_main(multiboot_info_t* mbi) {
             }
         }else if(strcmp(command, "syscal") == 0){
             SYSCALL(0, 0, 0);
+        }else if(strcmp(command, "redscreen") == 0){
+            __asm__ __volatile__(
+                "mov $0xdead, %ax\n"
+                "mov %ax, %ds\n"
+                "movb $1, 0x0\n"
+            );
         }else{
             print_string("Unknown command: \n");
             print_string(command);
