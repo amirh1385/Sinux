@@ -53,6 +53,25 @@ void reboot(){
     }
 }
 
+volatile uint32_t timer_count = 0;
+volatile uint32_t sleep_start;
+volatile uint32_t sleep_interval;
+void handle_timer(){
+    timer_count++;
+    if(sleep_interval != 0 && timer_count-sleep_start >= sleep_interval){
+        sleep_interval = 0;
+    }
+    outb(0xF8, '"');
+}
+
+void sleep(uint32_t ticks){
+    sleep_start = timer_count;
+    sleep_interval = ticks;
+    while(sleep_interval != 0){
+        asm volatile("hlt");
+    }
+}
+
 void system(){
     clear_screen();
     default_color.foreground = VGA_FG_GREEN;
@@ -94,8 +113,7 @@ void help() {
     print_string("============================================================\n");
 }
 
-void red_screen_error(){
-    asm volatile("cli");
+void red_screen_error(){  
     clear_screen();
     default_color.background = VGA_BG_RED;
     default_color.foreground = VGA_FG_WHITE;
@@ -109,7 +127,7 @@ void red_screen_error(){
     print_string("   #        #                                                                   ");
     print_string("   #        #                                                                   ");
     print_string("   # #    # #                                                                   ");
-    print_string("   #  ####  #                                                                   ");
+    print_string("   #  ####  #     Sinux Is Dead.                                                ");
     print_string("   ##########                                                                   ");
     print_string("                                                                                ");
     print_string("   CRITICAL ERROR: The kernel asked for help. I refused. Now we're here.        ");
@@ -125,9 +143,8 @@ void red_screen_error(){
     print_string("                                                                                ");
     print_string("                                                                                ");
 
-    while(1){
-        asm volatile("hlt");
-    }
+
+    asm volatile("hlt");
 }
 
 char user[15];

@@ -58,5 +58,7 @@
 #define KEYCODE_NUMPAD_9  73
 
 #define KEYCODE_DOT_MAIN  52
+#define KEYCODE_ARROW_LEFT 113
+#define KEYCODE_ARROW_RIGHT 114
 
 #endif

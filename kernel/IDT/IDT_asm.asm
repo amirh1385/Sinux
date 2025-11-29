@@ -40,12 +40,14 @@ isr_default_handler:
     iretd
 
 extern handle_cursor
+extern handle_timer
 global irq0_handler
 irq0_handler:
     pushad
     mov al, 0x20
     out 0x20, al
     call handle_cursor
+    call handle_timer
     popad
     iretd
 

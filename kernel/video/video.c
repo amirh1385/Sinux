@@ -171,9 +171,10 @@ void vin(char* buffer) {
                 last_cursor_position();
             }
         }
-        else{
+        else{        
             buffer[index] = vin_input_char;
             print_char(vin_input_char);
+
             index++;
         }
         vin_input = 0x0;
@@ -181,6 +182,8 @@ void vin(char* buffer) {
 }
 
 void on_key_pressed(KeyMapEntry key_code){
+    if(key_code.character == 0)
+        return;
     vin_input_char = key_code.character;
     vin_input = 0x1;
 }
