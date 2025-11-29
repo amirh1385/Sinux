@@ -130,6 +130,45 @@ void red_screen_error(){
     }
 }
 
+char user[15];
+void login(){
+    default_color.background = VGA_BG_BLUE;
+    default_color.foreground = VGA_FG_WHITE;
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+    print_string("                    ########################################                    ");
+    print_string("                    # Username # : #                       #                    ");
+    print_string("                    ########################################                    ");
+    print_string("                    ########################################                    ");
+    print_string("                    # Password # : #                       #                    ");
+    print_string("                    ########################################                    ");
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+    print_string("                                                                                ");
+
+    cursor_pos.row = 15;
+    cursor_pos.column = 37;
+    vin(user);
+    char password[15];
+    cursor_pos.row = 18;
+    cursor_pos.column = 37;
+    vin(password);
+}
+
 int process_command(char command[160], char parameters_buffer[5][100]){
     uint8_t index = 0;
     uint8_t parameter_number = 0;
@@ -167,19 +206,11 @@ void kernel_main(multiboot_info_t* mbi) {
 
     asm volatile("sti"); 
 
-    clear_screen(0x0f);
+    login();
 
     bool on = true;
-    char user[15];
     default_color.foreground = VGA_FG_WHITE;
-    print_string("================================> [  ");
-    default_color.foreground = VGA_FG_LIGHT_GREEN;
-    print_string("SINUX");
-    default_color.foreground = VGA_FG_WHITE;
-    print_string("  ] <=================================");
-
-    print_string("Username : ");
-    vin(user);
+    default_color.background = VGA_BG_BLACK;
 
     clear_screen();
 
