@@ -39,11 +39,13 @@ isr_default_handler:
     popad
     iretd
 
+extern handle_cursor
 global irq0_handler
 irq0_handler:
     pushad
     mov al, 0x20
     out 0x20, al
+    call handle_cursor
     popad
     iretd
 

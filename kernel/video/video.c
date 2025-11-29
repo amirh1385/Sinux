@@ -76,6 +76,8 @@ void scroll_up() {
 
 void next_cursor_position() {
     cursor_pos.column++;
+    vga_buffer[cursor_pos.row][cursor_pos.column].color.blink = 0;
+
     if (cursor_pos.column >= 80) {
         cursor_pos.column = 0;
         cursor_pos.row++;
@@ -83,6 +85,16 @@ void next_cursor_position() {
             scroll_up();
             cursor_pos.row = 24;
         }
+    }
+}
+
+uint8_t timer = 0;
+extern uint8_t inputting;
+void handle_cursor(){
+    timer++;
+    if(timer >= 9){
+        vga_buffer[cursor_pos.row][cursor_pos.column].color.blink = !vga_buffer[cursor_pos.row][cursor_pos.column].color.blink;
+        timer = 0;
     }
 }
 
@@ -133,7 +145,9 @@ void clear_screen() {
 
 uint8_t vin_input = 0x0;
 char vin_input_char = 0;
+uint8_t inputting = 0;
 void vin(char* buffer) {
+    inputting = 1;
     int index = 0;
     vin_input = 0x0;
     while (1) {
@@ -141,6 +155,8 @@ void vin(char* buffer) {
             asm volatile ("hlt");
         }
         if(vin_input_char == '\n'){
+            inputting = 0;
+            vga_buffer[cursor_pos.row][cursor_pos.column].color.blink = 0;
             buffer[index] = '\0';
             print_char('\n');
             vin_input = 0x0;
