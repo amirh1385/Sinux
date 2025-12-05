@@ -70,7 +70,7 @@ void kfree(uint32_t address){
     do
     {
         if(heap_units[unit_index].start == address){
-            if(heap_units[heap_units[unit_index].last_unit].type == 1){
+            if(heap_units[heap_units[unit_index].last_unit].type == HEAP_FREE){
                 heap_units[unit_index].size += heap_units[heap_units[unit_index].last_unit].size;
                 heap_units[unit_index].start -= heap_units[heap_units[unit_index].last_unit].size;
                 heap_units[heap_units[unit_index].last_unit].type = 0;
@@ -78,7 +78,7 @@ void kfree(uint32_t address){
                 heap_units[heap_units[heap_units[unit_index].last_unit].last_unit].next_unit = unit_index;
             }
 
-            if(heap_units[unit_index].next_unit != 0xFFFFFFFF && heap_units[heap_units[unit_index].next_unit].type == 1){
+            if(heap_units[unit_index].next_unit != 0xFFFFFFFF && heap_units[heap_units[unit_index].next_unit].type == HEAP_FREE){
                 heap_units[unit_index].size += heap_units[heap_units[unit_index].next_unit].size;
                 heap_units[heap_units[unit_index].next_unit].type = 0;
                 if(heap_units[heap_units[unit_index].next_unit].next_unit != 0xFFFFFFFF){
@@ -86,6 +86,8 @@ void kfree(uint32_t address){
                 }
                 heap_units[unit_index].next_unit = heap_units[heap_units[unit_index].next_unit].next_unit;
             }
+
+            heap_units[unit_index].type = HEAP_FREE;
         }
         unit_index = heap_units[unit_index].next_unit;
     } while (unit_index != 0xFFFFFFFF);

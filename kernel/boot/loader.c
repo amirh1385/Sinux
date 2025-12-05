@@ -2,6 +2,9 @@
 #include <multiboot.h>
 #include <arch/x86/mm/pmm.h>
 #include <arch/x86/mm/vmm.h>
+#include <arch/x86/mm/heap.h>
+#include <arch/x86/interrupts/idt.h>
+#include <arch/x86/interrupts/gdt.h>
 #include <log.h>
 
 #define MULTIBOOT_HEADER_MAGIC 0x1BADB002
@@ -17,10 +20,10 @@ const unsigned int multiboot_header[] = {
     0,
     0,
     0,
-    1,
-    1024,
-    768,
-    32
+    1,    // type 0=vbe 1=text mode
+    1024, // width
+    768,  // height
+    32    // depth
 };
 
 uint32_t stack[4096*4];
@@ -30,6 +33,10 @@ void kernel_entry(multiboot_info_t *mbi){
 
     pmm_init(mbi);
     vmm_init();
+    heap_init();
+
+    gdt_init();
+    idt_init();
 
     while(1){
         asm volatile("hlt");
